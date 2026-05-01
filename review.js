@@ -1,21 +1,20 @@
 import 'dotenv/config';
 import Groq from 'groq-sdk';
+import {fetchPRDiff} from "./github-client.js";
+
+
+const prUrl = process.argv[2];
+
+if(!prUrl) {
+  console.error("Usage: node review.js <PR_URL>");
+  process.exit(1);
+}
 
 const client = new Groq({
   apiKey: process.env.GROQ_API_KEY, // This is the default and can be omitted
 });
 
-const diff = `
-diff --git a/src/auth.js b/src/auth.js
-@@ -10,7 +10,12 @@ function login(username, password) {
--  const user = db.query("SELECT * FROM users WHERE name = '" + username + "'");
-+  const user = db.query("SELECT * FROM users WHERE name = ?", [username]);
-   if (user && user.password === password) {
-     return generateToken(user);
-   }
-+  return null;
- }
-`;
+const diff = await fetchPRDiff(prUrl);
 
 
 const systemPrompt = 'You are a senior code reviewer. Respond only with valid JSON.';
