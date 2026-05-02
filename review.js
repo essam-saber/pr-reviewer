@@ -1,6 +1,6 @@
 import "dotenv/config";
 
-import { fetchPRDiff } from "./github-client.js";
+import { fetchPRDiff, postPRComment } from "./github-client.js";
 import { askLLM } from "./llm-client.js";
 
 const prUrl = process.argv[2];
@@ -23,5 +23,30 @@ const userRole = `Review the following git diff and respond with JSON in this ex
 
 Diff:
 ${diff}`;
+
 const review = await askLLM(systemRole, userRole);
-console.log(review);
+
+
+
+function formatReviewForComment(review) {
+  let comment = `**PR Review**\n\n**Summary:** ${review.summary}\n\n`;
+  if (review.issues.length > 0) {
+    comment += "**Issues:**\n";
+    review.issues.forEach((issue, index) => {
+      comment += `${index + 1}. ${issue}\n`;
+    });
+    comment += "\n";
+  }
+  if (review.suggestions.length > 0) {
+    comment += "**Suggestions:**\n";
+    review.suggestions.forEach((suggestion, index) => {
+      comment += `${index + 1}. ${suggestion}\n`;
+    });
+  }
+  return comment;
+}
+
+const formattedComment = formatReviewForComment(review);
+
+await postPRComment(prUrl, formattedComment);      
+console.log('✓ Review posted');

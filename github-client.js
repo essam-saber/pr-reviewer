@@ -31,3 +31,13 @@ export async function fetchPRDiff(prUrl) {
 
   return response.data;
 }
+
+export async function postPRComment(prUrl, comment) {
+  const {owner, repo, prNumber} = parsePRUrl(prUrl);
+  await octokit.issues.createComment({
+    owner,
+    repo,
+    issue_number: prNumber,
+    body: comment,
+  });
+}
