@@ -1,4 +1,4 @@
-# ADR 0001:  LLM Provider Selection
+# ADR 0001: LLM Provider Selection
 
 ## Status
 
@@ -6,7 +6,7 @@ Accepted (2026-04-27)
 
 ## Context
 
-v0 of the PR reviewer needs an LLM provider. Available Options:  
+v0 of the PR reviewer needs an LLM provider. Available Options:
 
 - Anthropic (Claude) - required paid credit no free tier for development
 - GEMINI - does have free tier but should configure the billing first
@@ -23,7 +23,7 @@ Use Groq with `openai/gpt-oss-20b` for v0.
 - It doesn't required any configuration for billing.
 - The output is suffecient for the v0.
 
-## Consequencies 
+## Consequencies
 
 - The code is not tightly coupld to the Groq because we will abstract it later.
 - The free tier might finished during the development so we might revisit it again.

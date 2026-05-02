@@ -3,6 +3,24 @@ import "dotenv/config";
 import { fetchPRDiff, postPRComment } from "./github-client.js";
 import { askLLM } from "./llm-client.js";
 
+function formatReviewForComment(review) {
+  let comment = `**PR Review**\n\n**Summary:** ${review.summary}\n\n`;
+  if (review.issues?.length > 0) {
+    comment += "**Issues:**\n";
+    review.issues.forEach((issue, index) => {
+      comment += `${index + 1}. ${issue}\n`;
+    });
+    comment += "\n";
+  }
+  if (review.suggestions?.length > 0) {
+    comment += "**Suggestions:**\n";
+    review.suggestions.forEach((suggestion, index) => {
+      comment += `${index + 1}. ${suggestion}\n`;
+    });
+  }
+  return comment;
+}
+
 const prUrl = process.argv[2];
 
 if (!prUrl) {
@@ -26,27 +44,8 @@ ${diff}`;
 
 const review = await askLLM(systemRole, userRole);
 
-
-
-function formatReviewForComment(review) {
-  let comment = `**PR Review**\n\n**Summary:** ${review.summary}\n\n`;
-  if (review.issues.length > 0) {
-    comment += "**Issues:**\n";
-    review.issues.forEach((issue, index) => {
-      comment += `${index + 1}. ${issue}\n`;
-    });
-    comment += "\n";
-  }
-  if (review.suggestions.length > 0) {
-    comment += "**Suggestions:**\n";
-    review.suggestions.forEach((suggestion, index) => {
-      comment += `${index + 1}. ${suggestion}\n`;
-    });
-  }
-  return comment;
-}
-
 const formattedComment = formatReviewForComment(review);
 
-await postPRComment(prUrl, formattedComment);      
-console.log('✓ Review posted');
+await postPRComment(prUrl, formattedComment);
+
+console.log("✓ Review posted");
