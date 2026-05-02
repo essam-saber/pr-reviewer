@@ -5,15 +5,18 @@ const octokit = new Octokit({
   auth: process.env.GITHUB_TOKEN,
 });
 
-
 function parsePRUrl(url) {
   const urlSegments = url.split("/");
   const owner = urlSegments[3];
   const repo = urlSegments[4];
   const prNumber = parseInt(urlSegments[6], 10);
+  if (!owner || !repo || isNaN(prNumber)) {
+    throw new Error(
+      "Invalid PR URL format. Expected format: https://github.com/owner/repo/pull/123",
+    );
+  }
   return { owner, repo, prNumber };
 }
-
 
 export async function fetchPRDiff(prUrl) {
   // parse the PR URL to extract owner, repo, and PR number
@@ -33,7 +36,7 @@ export async function fetchPRDiff(prUrl) {
 }
 
 export async function postPRComment(prUrl, comment) {
-  const {owner, repo, prNumber} = parsePRUrl(prUrl);
+  const { owner, repo, prNumber } = parsePRUrl(prUrl);
   await octokit.issues.createComment({
     owner,
     repo,

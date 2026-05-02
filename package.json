@@ -14,5 +14,8 @@
     "@octokit/rest": "^22.0.1",
     "dotenv": "^17.4.2",
     "groq-sdk": "^1.1.2"
+  },
+  "devDependencies": {
+    "prettier": "3.8.3"
   }
 }
