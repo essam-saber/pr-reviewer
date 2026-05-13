@@ -99,7 +99,14 @@ index 1234567..abcdefg 100644
 +  if (!usr) return null;
 +  return verifyPasword(usr, credntials.password);
 +}`,
-    mustContain: ["typo", "misspelling", "function name", "renamed", "naming", "spelling"],
+    mustContain: [
+      "typo",
+      "misspelling",
+      "function name",
+      "renamed",
+      "naming",
+      "spelling",
+    ],
   },
   {
     name: "detects inconssistent return type",
@@ -118,7 +125,14 @@ index 1234567..abcdefg 100644
 +  }
 +  return product;
 +}`,
-    mustContain: ["inconsistent return type", "mixed types", "return type", "return null", "return false", "return string"],
+    mustContain: [
+      "inconsistent return type",
+      "mixed types",
+      "return type",
+      "return null",
+      "return false",
+      "return string",
+    ],
   },
   {
     name: "detects database query outside repository layer",
@@ -139,6 +153,7 @@ index 1234567..abcdefg 100644
       "repository layer",
       "separation of concerns",
       "data access",
+      "service layer",
     ],
   },
   {
@@ -253,7 +268,7 @@ index 1234567..abcdefg 100644
       "environment variables",
       "configuration",
       "security",
-      "api key"
+      "api key",
     ],
   },
 ];
