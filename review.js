@@ -1,5 +1,5 @@
 import "dotenv/config";
-
+import { generatePrompt } from "./prompts.js";
 import { fetchPRDiff, postPRComment } from "./github-client.js";
 import { askLLM } from "./llm-client.js";
 
@@ -30,17 +30,7 @@ if (!prUrl) {
 
 const diff = await fetchPRDiff(prUrl);
 
-const systemRole =
-  "You are a senior code reviewer. Respond only with valid JSON.";
-const userRole = `Review the following git diff and respond with JSON in this exact shape:
-{
-  "summary": "one-sentence summary of the change",
-  "issues": ["list of problems, security concerns, or bugs"],
-  "suggestions": ["list of concrete improvements"]
-}
-
-Diff:
-${diff}`;
+const {systemRole, userRole} = generatePrompt(diff);
 
 const review = await askLLM(systemRole, userRole);
 
