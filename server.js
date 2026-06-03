@@ -17,14 +17,24 @@ function verifySignature(request) {
 
   try {
     const receivedSignature = Buffer.from(signature);
-    const expectedSignatureBuffer = Buffer.from(expectedSignature);  
-    if(receivedSignature.length !== expectedSignatureBuffer.length) {
+    const expectedSignatureBuffer = Buffer.from(expectedSignature);
+    if (receivedSignature.length !== expectedSignatureBuffer.length) {
       return false;
     }
     return crypto.timingSafeEqual(receivedSignature, expectedSignatureBuffer);
   } catch (err) {
     return false;
   }
+}
+
+function isReviewableRequest(request) {
+  const event = request.headers["x-github-event"];
+  const action = request.body.action;
+
+  const isPullRequest = event === "pull_request";
+  const isReviewableAction = action === "opened" || action === "synchronize";
+
+  return isPullRequest && isReviewableAction;
 }
 
 const fastify = Fastify({
@@ -46,17 +56,25 @@ fastify.addContentTypeParser(
 );
 
 fastify.post("/webhook", async (request, reply) => {
-  const isVerified = verifySignature(request);
-  if(!isVerified) {
+  if (!verifySignature(request)) {
     request.log.warn("Invalid signature for incoming webhook");
     return reply.status(401).send({ error: "Invalid signature" });
   }
-  request.log.info("Received webhook:", { body: request.body });
+
+  if (!isReviewableRequest(request)) {
+    request.log.info(
+      {
+        action: request.body.action,
+      },
+      "Received non-reviewable event, ignoring",
+    );
+    return reply.status(200).send({ status: "ignored" });
+  }
   return { status: "OK" };
 });
 
 try {
-  await fastify.listen({ port: 3000, host: "0.0.0.0"});
+  await fastify.listen({ port: 3000, host: "0.0.0.0" });
 } catch (err) {
   fastify.log.error(err);
   process.exit(1);
