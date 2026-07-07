@@ -1,6 +1,7 @@
 import crypto from "crypto";
 import "dotenv/config";
 import Fastify from "fastify";
+import { query } from "./db.js";
 
 function verifySignature(request) {
   const secret = process.env.GITHUB_WEBHOOK_SECRET;
@@ -70,7 +71,25 @@ fastify.post("/webhook", async (request, reply) => {
     );
     return reply.status(200).send({ status: "ignored" });
   }
-  return { status: "OK" };
+
+  try {
+    await query(
+      "INSERT INTO pr_review_jobs (github_pr_id, owner, repo, pr_number, head_sha, status) VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT (github_pr_id) WHERE status IN ('pending', 'processing') DO NOTHING",
+      [
+        request.body.pull_request.id,
+        request.body.repository.owner.login,
+        request.body.repository.name,
+        request.body.pull_request.number,
+        request.body.pull_request.head.sha,
+        "pending",
+      ],
+    );
+    request.log.info({ pr: request.body.pull_request.number }, "Job enqueued");
+    return { status: "OK" };
+  } catch (err) {
+    request.log.error({ err }, "Failed to enqueue job");
+    return reply.status(500).send({ error: "Failed to enqueue" });
+  }
 });
 
 try {
